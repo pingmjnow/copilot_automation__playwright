@@ -167,4 +167,4 @@ Honest list — these are deliberate next steps, not hidden gaps:
 - Locators mix `data-test` with CSS classes; plan: standardise on `data-test` everywhere.
 - The `name_asc` sorting case matches the app default, so it is a weak oracle on its own.
 - Login happens through the UI per test; plan: reuse a session-scoped `storage_state` to cut runtime.
-- SauceDemo's broken personas (`problem_user`, `performance_glitch_user`, `error_user`) are not covered yet.
+- SauceDemo's broken personas (`problem_user`, `performance_glitch_user`, `error_user`) are not covered.
