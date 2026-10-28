@@ -3,5 +3,6 @@ pytest>=9.2.0
 pytest-playwright>=0.10.0
 pytest-html>=4.2.0
 pytest-xdist>=3.6.1
+pytest-timeout>=2.3.1
 python-dotenv>=1.0.1
 openpyxl>=3.1.5
