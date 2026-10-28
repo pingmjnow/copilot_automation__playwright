@@ -5,7 +5,6 @@ come from ``testdata/saucedemo_test_data.xlsx`` so the suites are data-driven.
 """
 
 import os
-from pathlib import Path
 from typing import Iterator
 
 import pytest
@@ -21,9 +20,6 @@ from testdata.excel_data import load_rows
 load_dotenv()
 
 DEFAULT_BASE_URL = "https://www.saucedemo.com"
-
-REPORTS_DIR = Path(__file__).parent / "reports"
-SCREENSHOTS_DIR = REPORTS_DIR / "screenshots"
 
 
 @pytest.fixture(scope="session")
@@ -91,15 +87,3 @@ def api_request(playwright: Playwright, base_url: str) -> Iterator[APIRequestCon
     context = playwright.request.new_context(base_url=base_url)
     yield context
     context.dispose()
-
-
-@pytest.hookimpl(wrapper=True, tryfirst=True)
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
-    """Capture a full-page screenshot whenever a test fails."""
-    report = yield
-    if report.when == "call" and report.failed:
-        page = item.funcargs.get("page")
-        if isinstance(page, Page) and not page.is_closed():
-            SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
-            page.screenshot(path=SCREENSHOTS_DIR / f"{item.name}.png", full_page=True)
-    return report

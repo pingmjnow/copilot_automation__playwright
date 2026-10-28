@@ -46,3 +46,12 @@ jobs:
           path: reports/
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore

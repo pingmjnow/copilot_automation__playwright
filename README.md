@@ -17,7 +17,7 @@ rather than code changes.
 | Browser automation | `playwright` (sync API) |
 | Test runner | `pytest` + `pytest-playwright` |
 | Parallelism / timeouts | `pytest-xdist`, `pytest-timeout` |
-| Reporting | `pytest-html` (HTML), built-in JUnit XML, failure screenshots |
+| Reporting | `pytest-html` (HTML), built-in JUnit XML, Playwright trace + screenshot on failure |
 | Test data | `openpyxl` reading `testdata/saucedemo_test_data.xlsx` |
 | Config | `python-dotenv` (`.env`) + environment variables |
 
@@ -78,7 +78,7 @@ Expected output: `7 passed, 56 deselected`.
 ├── testdata/
 │   ├── excel_data.py             # cached, schema-validated loader
 │   └── saucedemo_test_data.xlsx  # users, products, sorting, checkout, http_checks
-├── conftest.py                   # fixtures + failure-screenshot hook
+├── conftest.py                   # fixtures and browser/API setup
 ├── pytest.ini                    # markers, strict config, reports, timeout
 ├── requirements.txt
 └── reports/                      # generated (git-ignored, .gitkeep only)
@@ -101,7 +101,7 @@ Expected output: `7 passed, 56 deselected`.
 | `pytest tests/test_checkout.py -k totals` | Single test selection |
 
 Reports are written to `reports/report.html` (self-contained) and `reports/junit.xml`;
-failure screenshots go to `reports/screenshots/`. Run pytest **from the repository root** —
+failure artifacts (trace + screenshot) go to `test-results/<test-id>/`. Run pytest **from the repository root** —
 the report paths in `pytest.ini` are relative to the invocation directory.
 
 ---
@@ -141,7 +141,12 @@ SauceDemo's public demo accounts, not real secrets.
 - **Global test timeout** is 120 s (`pytest-timeout`), so a stuck navigation fails instead of hanging CI.
 - **Fixtures** chain as `login_page → inventory_page → cart_page → checkout_information_page`; each test gets a
   fresh browser context, so cart state never leaks between tests.
-- **Failure diagnostics**: the `pytest_runtest_makereport` hook saves a full-page screenshot on failure.
+- **Failure diagnostics**: `--tracing=retain-on-failure` and `--screenshot=only-on-failure` are enabled in
+  `pytest.ini`. A failing test leaves `test-results/<test-id>/trace.zip`; open it with
+  `python -m playwright show-trace "test-results/<test-id>/trace.zip"` to replay every action with DOM snapshots,
+  console and network. Passing tests discard their trace, so green runs cost nothing.
+- **Local debugging**: `pytest --headed --slowmo 500`, `PWDEBUG=1` (Inspector + locator picker), or
+  `python -m playwright codegen https://www.saucedemo.com` to generate locators.
 
 ---
 
@@ -153,6 +158,7 @@ SauceDemo's public demo accounts, not real secrets.
 2. installs Chromium via `python -m playwright install --with-deps chromium`
 3. runs `python -m pytest -m smoke -q`
 4. uploads `reports/` as a build artifact (always, so failures are debuggable)
+5. uploads `test-results/` (Playwright trace + failure screenshot) as `playwright-artifacts` when the job fails
 
 CI uses Python 3.13; adjust `python-version` in the workflow if you standardise elsewhere.
 
